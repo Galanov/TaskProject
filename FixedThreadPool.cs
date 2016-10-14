@@ -244,11 +244,12 @@ namespace WFMyApp
 
         private void Work()
         {
-            while (true)
-            {
+            //while (true)
+            //{
                 //if (stop == true && threadQueue.Count <= 0)
-                
-                //{
+
+                do
+                {
                     if (threadQueue.Count != 0)
                     {
                         List<int> li = new List<int>();
@@ -290,16 +291,16 @@ namespace WFMyApp
                     }
                     
                     Thread.Sleep(100);
-                Console.WriteLine("High={0},Normal={1},Low={2},lTask={3}", highPriority.Count, normalPriority.Count, lowPriority.Count, threadQueue.Count);
+                Console.WriteLine("High={0},Normal={1},Low={2},threadQueue={3}", highPriority.Count, normalPriority.Count, lowPriority.Count, threadQueue.Count);
 
-                //}
-                //else
-                //{
-                //    return;
-                //}
-
-
-            }
+                    //}
+                    //else
+                    //{
+                    //    return;
+                    //}
+                } while (stop != false || threadQueue.Count != 0);
+            Console.WriteLine("End");
+            //}
         }
 
         
