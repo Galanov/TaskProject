@@ -255,13 +255,13 @@ namespace WFMyApp
                         int i = 0;
                         foreach (var threadTask in threadQueue)
                         {
-                            Console.WriteLine(threadTask.task.Status);
+                           // Console.WriteLine(threadTask.task.Status);
                             if (TaskStatus.RanToCompletion == threadTask.task.Status)
                             {
                                 li.Add(i);
                                 //threadQueue.RemoveAt(i);
-                                Console.WriteLine(threadTask.task.Status);
-                                Console.WriteLine(i);
+                                //Console.WriteLine(threadTask.task.Status);
+                                //Console.WriteLine(i);
                             }
                             i++;
                         }
@@ -274,7 +274,7 @@ namespace WFMyApp
                         {
                             ExampleTask exampleTask = ReturnNextTask();
                             exampleTask.task.Start();
-                            Console.WriteLine(exampleTask.priority);
+                           // Console.WriteLine(exampleTask.priority);
                             threadQueue.Add(exampleTask);
                         }
                     }
@@ -290,13 +290,15 @@ namespace WFMyApp
                     }
                     
                     Thread.Sleep(100);
+                Console.WriteLine("High={0},Normal={1},Low={2},lTask={3}", highPriority.Count, normalPriority.Count, lowPriority.Count, threadQueue.Count);
+
                 //}
                 //else
                 //{
                 //    return;
                 //}
-                
-                    
+
+
             }
         }
 

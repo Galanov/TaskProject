@@ -55,7 +55,7 @@ namespace WFMyApp
         }
         private void Govnocode()
         {
-            Information(tb);
+            //Information(tb);
         }
         private void TestButtonClick(object sender,EventArgs e)
         {
@@ -374,9 +374,10 @@ namespace WFMyApp
             for (int i = 0; i < 5; i++)
             {
                 Thread.Sleep(time);
-                Console.WriteLine("Id задачи :{0}", Task.CurrentId);
+                //Console.WriteLine("Id задачи :{0}", Task.CurrentId);
+                
             }
-            Console.WriteLine("Id задачи :{0} Cancelled", Task.CurrentId);
+            //Console.WriteLine("Id задачи :{0} Cancelled", Task.CurrentId);
         }
 
         static void Display()
