@@ -10,17 +10,21 @@ namespace WFMyApp
 {
     public class FixedThreadPool
     {
-        Queue<ExampleTask> lTask = new Queue<ExampleTask>();
-        //private 
-        public Queue<ExampleTask> highPriority;
-        //private 
-        public Queue<ExampleTask> normalPriority;
-        //private 
-        public Queue<ExampleTask> lowPriority;
+        // очередь для потоков с высоким приоритетом
+        private Queue<ExampleTask> highPriority;
+        // очередь для потоков со средним приоритетом
+        private Queue<ExampleTask> normalPriority;
+        // очередь для потоков с низкиим приоритетом
+        private Queue<ExampleTask> lowPriority;
+        //переменная отвечающая за возвращаемый результат и добавления потоков в очередь
         bool stop = true;
+        // переменная отвечающая за добавление потоков со средним приоритетом между потоками с высоким приоритетом
         int nextNORMAL;
+        //количесвто потоков одновременно выполняющих операции
         private int countThread;
+        //  список в котором находятся рабочие потоки
         private List<ExampleTask> threadQueue;
+
         private Task workTask;
 
         public FixedThreadPool(int n)
@@ -44,27 +48,7 @@ namespace WFMyApp
             }
             return stop;
         }
-
-        private void ThreadWork()
-        {
-            if (threadQueue.Count == countThread)
-            {
-                return;
-            }
-            else
-            { 
-                if (lTask.Count!=0)
-                {
-                    ExampleTask exampleTask = lTask.Dequeue();
-                    //exampleTask.task.Status
-                    exampleTask.task.Start();
-                    threadQueue.Add(exampleTask);
-                    
-                }
-            }
-            
-        }
-
+        
         private void EnterExampleTask(ExampleTask exTask)
         {
             switch (exTask.priority)
@@ -87,77 +71,22 @@ namespace WFMyApp
         {
             this.stop = false;
         }
-
-        private void Action()
-        {
-            
-        }
         
         // метод для удаления из списка выполняемых потоков
         //передается 2 списка, один со списком потоков, второй со списком элементов которые надо удалить 
-        private void DeleteExampleThread(List<ExampleTask> exTask, List<int> lInt)
+        private void DeleteExampleThread( List<int> lInt)
         {
             for (int i = lInt.Count - 1; i >= 0; i--)
             {
-                exTask.RemoveAt(lInt[i]);
+                threadQueue.RemoveAt(lInt[i]);
+                
             }
         }
-
-        private ExampleTask ReturnNextTask(ExampleTask extask)
-        {
-            switch (extask.priority)
-            {
-                case Priority.HIGH:
-                    {
-                        highPriority.Enqueue(extask);
-                        break;
-                    }
-                case Priority.NORMAL:
-                    {
-                        normalPriority.Enqueue(extask);
-                        break;
-                    }
-                case Priority.LOW:
-                    {
-                        lowPriority.Enqueue(extask);
-                        break;
-                    }
-            }
-            if (highPriority.Count != 0)
-            {
-                if (nextNORMAL == 3)
-                {
-                    nextNORMAL = 0;
-                    return normalPriority.Dequeue();
-                }
-                else
-                {
-                    nextNORMAL++;
-                    return highPriority.Dequeue();
-                }
-            }
-            else
-            {
-                if (normalPriority.Count != 0)
-                {
-                    return normalPriority.Dequeue();
-                }
-                else
-                {
-                    if (lowPriority.Count != 0)
-                    {
-                        return lowPriority.Dequeue();
-                    }
-                }
-
-            }
-            return null;
-        }
-
-        //возвращает поток для начала работы
+        
+        //возвращает следующий поток в рабочую очередь
         private ExampleTask ReturnNextTask()
         {
-            if (threadQueue.Count != 5)
+            if (threadQueue.Count != countThread)
             {
                 if (highPriority.Count != 0)
                 {
@@ -194,6 +123,7 @@ namespace WFMyApp
         //добавление потока в очередь
         private void EnterTask(ExampleTask exTask)
         {
+            // в зависимости от приоритета добавляем в соответствующую очередь
             switch (exTask.priority)
             {
                 case Priority.HIGH:
@@ -214,10 +144,10 @@ namespace WFMyApp
             }
         }
 
-        //проверка на добавление нового потока в очередь
+        //проверка есть ли в очередях потоки для выполнения
         private bool HaveNewTask()
         {
-            if (threadQueue.Count != 5)
+            if (threadQueue.Count != countThread)
             {
                 if (highPriority.Count != 0)
                 {
@@ -244,38 +174,32 @@ namespace WFMyApp
 
         private void Work()
         {
-            //while (true)
-            //{
-                //if (stop == true && threadQueue.Count <= 0)
-
-                do
+            do
+            {
+                // запускаем проверку на завершенные потоки
+                if (threadQueue.Count != 0)
                 {
-                    if (threadQueue.Count != 0)
+                    List<int> li = new List<int>();
+                    int i = 0;
+                    foreach (var threadTask in threadQueue)
                     {
-                        List<int> li = new List<int>();
-                        int i = 0;
-                        foreach (var threadTask in threadQueue)
-                        {
-                           // Console.WriteLine(threadTask.task.Status);
-                            if (TaskStatus.RanToCompletion == threadTask.task.Status)
-                            {
-                                li.Add(i);
-                                //threadQueue.RemoveAt(i);
-                                //Console.WriteLine(threadTask.task.Status);
-                                //Console.WriteLine(i);
-                            }
-                            i++;
+                       // определяем есть ли завершенные потоки
+                       if (TaskStatus.RanToCompletion == threadTask.task.Status)
+                       {
+                            li.Add(i);
                         }
-                        if (li.Count != 0)
-                        {
-                            DeleteExampleThread(threadQueue, li);
+                        i++;
+                    }
+                    if (li.Count != 0)
+                    {
+                            // удаляем завершенные потоки из рабочей очереди
+                            DeleteExampleThread( li);
                         }
-
+                        //если есть новый поток, добавляем его в рабочую очередь
                         if (HaveNewTask())
                         {
                             ExampleTask exampleTask = ReturnNextTask();
-                            exampleTask.task.Start();
-                           // Console.WriteLine(exampleTask.priority);
+                            exampleTask.Execute();
                             threadQueue.Add(exampleTask);
                         }
                     }
@@ -284,65 +208,15 @@ namespace WFMyApp
                         if (HaveNewTask())
                         {
                             ExampleTask exampleTask = ReturnNextTask();
-                            exampleTask.task.Start();
-                            Console.WriteLine(exampleTask.priority);
+                            exampleTask.Execute();
                             threadQueue.Add(exampleTask);
                         }
                     }
-                    
                     Thread.Sleep(100);
-                Console.WriteLine("High={0},Normal={1},Low={2},threadQueue={3}", highPriority.Count, normalPriority.Count, lowPriority.Count, threadQueue.Count);
-
-                    //}
-                    //else
-                    //{
-                    //    return;
-                    //}
+                    Console.WriteLine("High={0},Normal={1},Low={2},threadQueue={3}", highPriority.Count, normalPriority.Count, lowPriority.Count, threadQueue.Count);
                 } while (stop != false || threadQueue.Count != 0);
             Console.WriteLine("End");
-            //}
-        }
-
-        
-
-
-
-        private void MyCode()
-        {
-            Task task1 = new Task(() => DisplayMessage("вызов метода с параметрами"));
-            task1.Start();
-
-            Task task2 = new Task(Display);
-            task2.Start();
-
-            Task task3 = new Task(() =>
-            {
-                Console.WriteLine("Id задачи {0}", Task.CurrentId);
-            });
-            task3.Start();
-
             
-
-            Task task4 = new TaskFactory().StartNew(() =>
-            {
-                Console.WriteLine("Id задачи: {0}", Task.CurrentId);
-            });
-
-            TaskFactory tf = new TaskFactory();
-            Task t5 = tf.StartNew(Display);
-
-            Console.ReadLine();
-        }
-        
-        static void Display()
-        {
-            Console.WriteLine("Id задачи :{0}", Task.CurrentId);
-        }
-
-        static void DisplayMessage(string message)
-        {
-            Console.WriteLine("Сообщение {0}", message);
-            Console.WriteLine("Id задачи :{0}", Task.CurrentId);
         }
     }
 }
